@@ -10,11 +10,11 @@ builds:
       # - freebsd
       # - windows
       - linux
-      - darwin
+      # - darwin
     goarch:
-      - amd64
+      # - amd64
       # - "386"
-      - arm
+      # - arm
       - arm64
     ignore:
       - goos: darwin
@@ -36,7 +36,7 @@ signs:
   - artifacts: checksum
     args:
       - "--batch"
-      - "--u"
+      - "-u"
       - "691641308DC9B544"
       - "--output"
       - "${signature}"
