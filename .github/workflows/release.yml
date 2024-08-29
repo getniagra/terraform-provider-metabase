@@ -5,8 +5,6 @@ on:
     tags:
       - "v*"
 
-# Releases need permissions to read and write the repository contents.
-# GitHub considers creating releases and uploading assets as writing contents.
 permissions:
   contents: write
 
@@ -19,7 +17,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # Allow goreleaser to access older tag information.
           fetch-depth: 0
 
       - name: Set up Go
@@ -27,18 +24,19 @@ jobs:
         with:
           go-version-file: "go.mod"
 
-      - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v6
-        id: import_gpg
-        with:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          # passphrase: ${{ secrets.PASSPHRASE }}
-
-      - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v5
-        with:
-          args: release --rm-dist
+      - name: Import GPG key and Run GoReleaser
         env:
-          # GitHub sets the GITHUB_TOKEN secret automatically.
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+        run: |
+          # Import the GPG key
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          
+          # Get the GPG key ID
+          GPG_KEY_ID=$(gpg --list-secret-keys --keyid-format LONG | grep sec | awk '{print $2}' | cut -d'/' -f2)
+          
+          # Run GoReleaser
+          go install github.com/goreleaser/goreleaser@latest
+          goreleaser release --rm-dist \
+            --config .goreleaser.yml \
+            --env GPG_FINGERPRINT=$GPG_KEY_ID
