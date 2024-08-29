@@ -33,9 +33,8 @@ jobs:
           echo "$GPG_PRIVATE_KEY" | gpg --batch --import
           
           # Get the GPG key fingerprint
-          gpg --list-secret-keys --keyid-format LONG | grep sec | awk '{print $2}' | cut -d'/' -f2
           # Run GoReleaser
-          go install github.com/goreleaser/goreleaser@latest
-          GPG_FINGERPRINT=$(gpg --list-secret-keys --keyid-format LONG | grep sec | awk '{print $2}' | cut -d'/' -f2) \
+          go install github.com/goreleaser/goreleaser@latest     
+          GPG_FINGERPRINT=$(gpg --list-secret-keys --keyid-format LONG --with-fingerprint | grep -A 1 "Key fingerprint" | tail -n 1 | tr -d '[:space:]') \
           goreleaser release --rm-dist \
             --config .goreleaser.yml \
